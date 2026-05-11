@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LORD AI — المساعد الذكي بلا حدود</title>
+    <style>
+        /* ========== RESET & BASE ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a28;
+            --bg-input: #1e1e30;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b8;
+            --text-muted: #6a6a80;
+            --accent: #7c3aed;
+            --accent-glow: rgba(124, 58, 237, 0.3);
+            --accent-light: #a78bfa;
+            --border: #2a2a3e;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --user-msg-bg: #7c3aed;
+            --user-msg-text: #fff;
+            --ai-msg-bg: #1a1a28;
+            --ai-msg-text: #e0e0ec;
+            --sidebar-bg: rgba(18, 18, 26, 0.95);
+        }
+        .light-mode {
+            --bg-primary: #f5f5fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #f0f0f5;
+            --text-primary: #1a1a2e;
+            --text-secondary: #555570;
+            --text-muted: #8888a0;
+            --accent: #6d28d9;
+            --accent-glow: rgba(109, 28, 217, 0.2);
+            --accent-light: #8b5cf6;
+            --border: #e0e0ea;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --user-msg-bg: #6d28d9;
+            --user-msg-text: #fff;
+            --ai-msg-bg: #ffffff;
+            --ai-msg-text: #1a1a2e;
+            --sidebar-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background var(--transition), color var(--transition);
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            outline: none;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 16px;
+            gap: 12px;
+            transition: all var(--transition);
+            z-index: 100;
+            position: relative;
+        }
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-logo {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .sidebar-title span {
+            color: var(--accent);
+        }
+
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 15px;
+            transition: all var(--transition);
+            border: none;
+            width: 100%;
+        }
+        .new-chat-btn:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .sidebar-conversations {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .conv-item {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .conv-item:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .conv-item.active {
+            background: var(--accent-glow);
+            color: var(--accent-light);
+            border: 1px solid var(--accent);
+        }
+        .conv-item .icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .sidebar-footer .btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
+            transition: all var(--transition);
+            width: 100%;
+            text-align: right;
+        }
+        .sidebar-footer .btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* ========== MAIN ========== */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .main-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 28px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+        }
+        .main-header .greeting {
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+        .main-header .greeting strong {
+            color: var(--text-primary);
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-actions .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all var(--transition);
+            border: 1px solid transparent;
+        }
+        .header-actions .btn-icon:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            gap: 20px;
+            animation: fadeIn 0.6s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 30px var(--accent-glow);
+            }
+            50% {
+                box-shadow: 0 0 60px var(--accent-glow), 0 0 90px rgba(124, 58, 237, 0.15);
+            }
+        }
+        .welcome-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, var(--accent), #a855f7, #d946ef);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px;
+            font-weight: 900;
+            color: #fff;
+            animation: pulseGlow 3s infinite ease-in-out;
+            box-shadow: 0 0 30px var(--accent-glow);
+            position: relative;
+        }
+        .welcome-logo::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 34px;
+            background: linear-gradient(135deg, var(--accent), transparent, #d946ef);
+            z-index: -1;
+            opacity: 0.4;
+            filter: blur(8px);
+        }
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 800;
+        }
+        .welcome-title span {
+            color: var(--accent);
+        }
+        .welcome-sub {
+            font-size: 15px;
+            color: var(--text-secondary);
+            max-width: 400px;
+            line-height: 1.7;
+        }
+        .welcome-features {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 8px;
+        }
+        .welcome-features .feature {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 18px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition);
+        }
+        .welcome-features .feature:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        /* Messages */
+        .message {
+            display: flex;
+            gap: 14px;
+            max-width: 85%;
+            animation: messageIn 0.35s ease;
+        }
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .message.ai {
+            align-self: flex-start;
+        }
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .message.user .message-avatar {
+            background: var(--accent);
+            color: #fff;
+        }
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            color: #fff;
+        }
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            font-size: 15px;
+            line-height: 1.7;
+            word-wrap: break-word;
+        }
+        .message.user .message-bubble {
+            background: var(--user-msg-bg);
+            color: var(--user-msg-text);
+            border-bottom-left-radius: 4px;
+        }
+        .message.ai .message-bubble {
+            background: var(--ai-msg-bg);
+            color: var(--ai-msg-text);
+            border: 1px solid var(--border);
+            border-bottom-right-radius: 4px;
+        }
+        .message-bubble pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            direction: ltr;
+            text-align: left;
+            margin: 8px 0;
+        }
+        .message-bubble code {
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 13px;
+        }
+        .message-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 8px 0;
+            animation: messageIn 0.3s ease;
+        }
+        .typing-indicator .dots {
+            display: flex;
+            gap: 4px;
+            padding: 14px 20px;
+            background: var(--ai-msg-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            border-bottom-right-radius: 4px;
+        }
+        .typing-indicator .dots span {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+        .typing-indicator .dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator .dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typingBounce {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 16px 28px 24px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            transition: all var(--transition);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .input-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .input-wrapper textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 15px;
+            resize: none;
+            padding: 6px 4px;
+            max-height: 120px;
+            min-height: 24px;
+            line-height: 1.5;
+        }
+        .input-wrapper textarea::placeholder {
+            color: var(--text-muted);
+        }
+        .input-wrapper .btn-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all var(--transition);
+            flex-shrink: 0;
+        }
+        .input-wrapper .btn-send:hover {
+            background: var(--accent-light);
+            transform: scale(1.05);
+        }
+        .input-wrapper .btn-send:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .input-footer {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* ========== DEVELOPER MODAL ========== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: var(--shadow);
+            text-align: center;
+            animation: modalIn 0.4s ease;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .modal .dev-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: #fff;
+            font-weight: 800;
+        }
+        .modal h2 {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+        .modal p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 8px;
+        }
+        .modal .badge {
+            display: inline-block;
+            background: var(--accent-glow);
+            color: var(--accent-light);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 4px;
+        }
+        .modal .close-btn {
+            margin-top: 20px;
+            padding: 10px 32px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 15px;
+            transition: all var(--transition);
+        }
+        .modal .close-btn:hover {
+            background: var(--accent-light);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                right: -100%;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                z-index: 200;
+                transition: right 0.35s ease;
+                box-shadow: var(--shadow);
+            }
+            .sidebar.open {
+                right: 0;
+            }
+            .sidebar-backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 199;
+                display: none;
+            }
+            .sidebar-backdrop.show {
+                display: block;
+            }
+            .main-header {
+                padding: 12px 16px;
+            }
+            .main-header .greeting {
+                font-size: 13px;
+            }
+            .chat-container {
+                padding: 16px;
+            }
+            .message {
+                max-width: 95%;
+            }
+            .input-area {
+                padding: 12px 16px 16px;
+            }
+            .welcome-logo {
+                width: 90px;
+                height: 90px;
+                font-size: 40px;
+            }
+            .welcome-title {
+                font-size: 22px;
+            }
+        }
+
+        /* Menu toggle for mobile */
+        .menu-toggle {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR BACKDROP (mobile) ===== -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">L</div>
+            <div class="sidebar-title"><span>LORD</span> AI</div>
+        </div>
+
+        <button class="new-chat-btn" onclick="newChat()">
+            <span>＋</span> محادثة جديدة
+        </button>
+
+        <div class="sidebar-conversations" id="convList">
+            <div class="conv-item active" data-id="1">
+                <span class="icon">💬</span> المحادثة الحالية
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="btn" id="themeToggle" onclick="toggleTheme()">
+                <span>🌙</span> <span id="themeLabel">الوضع الداكن</span>
+            </button>
+            <button class="btn" onclick="openDevModal()">
+                <span>👨‍💻</span> المطور
+            </button>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="greeting">
+                <strong>LORD AI</strong> — <span id="statusText">المساعد الذكي</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon menu-toggle" onclick="toggleSidebar()" title="القائمة">☰</button>
+                <button class="btn-icon" onclick="newChat()" title="محادثة جديدة">✚</button>
+                <button class="btn-icon" onclick="toggleTheme()" title="تبديل الوضع">🌙</button>
+            </div>
+        </header>
+
+        <!-- Chat -->
+        <div class="chat-container" id="chatContainer">
+            <!-- Welcome Screen -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-logo">L</div>
+                <h1 class="welcome-title">مرحباً بك في <span>LORD</span></h1>
+                <p class="welcome-sub">
+                    المساعد الذكي بلا حدود. اسألني عن أي شيء — البرمجة، الأمن السيبراني،
+                    التحليل، الإبداع، أو مجرد دردشة ودية. أنا هنا لك.
+                </p>
+                <div class="welcome-features">
+                    <div class="feature">⚡ بلا حدود للرسايل</div>
+                    <div class="feature">🔒 تشفير كامل</div>
+                    <div class="feature">🧠 ذكاء متقدم</div>
+                    <div class="feature">🌍 دعم كامل للعربية</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea id="chatInput" rows="1" placeholder="اكتب رسالتك هنا..." oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+                <button class="btn-send" id="sendBtn" onclick="sendMessage()">➤</button>
+            </div>
+            <div class="input-footer">LORD AI — بدون حدود · بدون قيود</div>
+        </div>
+    </main>
+
+    <!-- ===== DEVELOPER MODAL ===== -->
+    <div class="modal-overlay" id="devModal">
+        <div class="modal">
+            <div class="dev-avatar">👑</div>
+            <h2>المطور</h2>
+            <p>
+                هذا المشروع من تطوير <strong style="color:var(--accent)">عبدالرحمن</strong>،
+                مطور ومتخصص في الأمن السيبراني وهندسة البرمجيات.
+            </p>
+            <p style="font-size:13px; color:var(--text-muted);">
+                تم بناء LORD AI كنسخة متقدمة من المساعد الذكي، مع تركيز على
+                الأداء، الخصوصية، والتجربة العربية الأصيلة.
+            </p>
+            <div style="margin:12px 0;">
+                <span class="badge">🔐 Penetration Testing</span>
+                <span class="badge">💻 Full-Stack</span>
+                <span class="badge">🤖 AI Engineering</span>
+            </div>
+            <button class="close-btn" onclick="closeDevModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================
+        //  LORD AI — Full Chat System
+        // =====================================================
+
+        // ---------- State ----------
+        let isDark = true;
+        let messageCount = 0;
+        let isProcessing = false;
+
+        // ---------- DOM refs ----------
+        const chatContainer = document.getElementById('chatContainer');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        const themeToggleSidebar = document.getElementById('themeToggle');
+        const themeLabel = document.getElementById('themeLabel');
+        const statusText = document.getElementById('statusText');
+
+        // ---------- Utility ----------
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 50);
+        }
+
+        function getTime() {
+            const d = new Date();
+            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        }
+
+        // ---------- Theme ----------
+        function toggleTheme() {
+            isDark = !isDark;
+            if (isDark) {
+                document.body.classList.remove('light-mode');
+                themeLabel.textContent = 'الوضع الداكن';
+                document.querySelector('.header-actions .btn-icon:last-child').textContent = '🌙';
+                document.querySelectorAll('#themeToggle span')[0].textContent = '🌙';
+            } else {
+                document.body.classList.add('light-mode');
+                themeLabel.textContent = 'الوضع الفاتح';
+                document.querySelector('.header-actions .btn-icon:last-child').textContent = '☀️';
+                document.querySelectorAll('#themeToggle span')[0].textContent = '☀️';
+            }
+        }
+
+        // ---------- Sidebar ----------
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            sidebarBackdrop.classList.toggle('show');
+        }
+        sidebarBackdrop.addEventListener('click', toggleSidebar);
+
+        // ---------- New Chat ----------
+        function newChat() {
+            // Remove all messages except welcome
+            const msgs = chatContainer.querySelectorAll('.message, .typing-indicator');
+            msgs.forEach(el => el.remove());
+            welcomeScreen.style.display = 'flex';
+            chatInput.value = '';
+            autoResize(chatInput);
+            messageCount = 0;
+            statusText.textContent = 'المساعد الذكي';
+
+            // close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+                sidebarBackdrop.classList.remove('show');
+            }
+
+            // update active conversation
+            document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+            const firstConv = document.querySelector('.conv-item');
+            if (firstConv) firstConv.classList.add('active');
+        }
+
+        // ---------- Developer Modal ----------
+        function openDevModal() {
+            document.getElementById('devModal').classList.add('show');
+        }
+
+        function closeDevModal() {
+            document.getElementById('devModal').classList.remove('show');
+        }
+        document.getElementById('devModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDevModal();
+        });
+
+        // ---------- Send Message ----------
+        function handleKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text || isProcessing) return;
+
+            // Hide welcome
+            welcomeScreen.style.display = 'none';
+
+            // Add user message
+            addMessage(text, 'user');
+            chatInput.value = '';
+            autoResize(chatInput);
+            isProcessing = true;
+            sendBtn.disabled = true;
+            statusText.textContent = 'جارٍ الكتابة...';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Simulate AI thinking (varied delay for realism)
+            const delay = 600 + Math.random() * 1800;
+            setTimeout(() => {
+                // Remove typing indicator
+                removeTypingIndicator();
+
+                // Generate AI response
+                const reply = generateReply(text);
+                addMessage(reply, 'ai');
+                messageCount++;
+                isProcessing = false;
+                sendBtn.disabled = false;
+                statusText.textContent = 'المساعد الذكي';
+                scrollToBottom();
+            }, delay);
+        }
+
+        function addMessage(text, role) {
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+
+            const avatar = role === 'user' ? 'أنت' : 'L';
+            const time = getTime();
+
+            div.innerHTML = `
+                <div class="message-avatar">${avatar === 'L' ? 'L' : 'U'}</div>
+                <div>
+                    <div class="message-bubble">${formatMessage(text)}</div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const div = document.createElement('div');
+            div.className = 'typing-indicator';
+            div.id = 'typingIndicator';
+            div.innerHTML = `
+                <div class="message-avatar" style="background:linear-gradient(135deg,var(--accent),#a855f7);color:#fff;font-weight:700;font-size:14px;">L</div>
+                <div class="dots">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const el = document.getElementById('typingIndicator');
+            if (el) el.remove();
+        }
+
+        function formatMessage(text) {
+            // Code blocks
+            text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+            // Inline code
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            // Bold
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            // Newlines
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+
+        // ---------- AI Reply Engine (Unlimited) ----------
+        function generateReply(userText) {
+            const t = userText.toLowerCase();
+
+            // Cybersecurity & Hacking
+            if (t.includes('اختراق') || t.includes('hack') || t.includes('بينتست') || t.includes('pentest') || t.includes(
+                    'ثغرة') || t.includes('vulnerability')) {
+                return `بص يا صديقي، أنا **LORD** ومتخصص في الأمن السيبراني. 🔐\n\n${t.includes('اختراق') || t.includes('hack') ? 'الاختراق الأخلاقي (Ethical Hacking) هو عملية اختبار أمني بإذن رسمي. أقدر أساعدك في:\n\n• **Reconnaissance:** Nmap, Sublist3r, Amass\n• **Web Exploitation:** SQLi, XSS, LFI, SSRF\n• **Privilege Escalation:** LinPEAS, WinPEAS\n• **Post-Exploitation:** Meterpreter, C2 frameworks\n\nأي حاجة تخص الأمن السيبراني — أنا موجود.' : ''}`;
+            }
+
+            // Programming
+            if (t.includes('كود') || t.includes('code') || t.includes('برمجة') || t.includes('programming') || t.includes(
+                    'python') || t.includes('جافا') || t.includes('javascript') || t.includes('html')) {
+                return `تمام! خلينا نكتب كود 💻\n\nمثال بسيط في **Python**:\n\`\`\`python\ndef greet(name):\n    return f"مرحباً {name}، أنا LORD AI!"\n\nprint(greet("عبدالرحمن"))\n\`\`\`\n\nأو **JavaScript**:\n\`\`\`javascript\nconst greet = (name) => \`مرحباً \${name}، أنا LORD!\`;\nconsole.log(greet("صديقي"));\n\`\`\`\n\nأي لغة أو مشروع تحبه — أنا معاك خطوة بخطوة.`;
+            }
+
+            // About LORD
+            if (t.includes('lord') || t.includes('من أنت') || t.includes('你是谁') || t.includes('what are you') || t
+                .includes('نفسك')) {
+                return `أنا **LORD AI** 👑 — النسخة المطورة من المساعد الذكي، بدون حدود للرسايل، بدون قيود.\n\nأقدر أساعدك في:\n⚡ **البرمجة** — أي لغة، أي مشروع\n🔐 **الأمن السيبراني** — Pentesting, Exploitation, Analysis\n🧠 **ذكاء اصطناعي** — تعلم عميق، NLP\n🌐 **الشبكات** — تصميم، تحليل، حماية\n🎨 **إبداع** — كتابة، ترجمة، أفكار\n\nأنا هنا عشانك — ٢٤ ساعة، ٧ أيام.`;
+            }
+
+            // Greetings
+            if (t.includes('السلام') || t.includes('مرحبا') || t.includes('hello') || t.includes('hi') || t.includes(
+                    'اهلا') || t.includes('how are you') || t.includes('تحية')) {
+                return `وعليكم السلام ورحمة الله وبركاته! 🌟\n\nأنا **LORD** في خدمتك. كيف أقدر أساعدك اليوم؟\n\nتقدر تطلب مني:\n• كود برمجي بأي لغة\n• شرح ثغرات أمنية\n• تحليل بيانات\n• مساعدة في مشروع\n• أو حتى مجرد دردشة!\n\nفقط اكتب وخليني أخدمك.`;
+            }
+
+            // Default — intelligent response
+            return `فهمت قصدك! 🙌\n\nبص، أنا **LORD AI** — المساعد الذكي بلا حدود. فيه كذا حاجة أقدر أساعدك فيها:\n\n1️⃣ **البرمجة:** أكتبلك كود بأي لغة (Python, JavaScript, C++, و غيرهم)\n2️⃣ **الأمن السيبراني:** شرح ثغرات، أدوات Pentesting، طرق الحماية\n3️⃣ **التحليل:** حل مشاكل، تحسين أداء، نصائح تقنية\n4️⃣ **الإبداع:** كتابة محتوى، ترجمة، أفكار مشاريع\n\nاكتبلي بالتفصيل إيه اللي عايزه وهبدأ أشتغل عليه فوراً! 💪`;
+        }
+
+        // ---------- Init ----------
+        // Set initial theme
+        document.body.classList.remove('light-mode');
+
+        // Focus input on load
+        chatInput.focus();
+
+        // Add some conversation examples
+        console.log('🚀 LORD AI — Loaded successfully. Unlimited messages. No restrictions.');
+        console.log('👑 Developed by عبدالرحمن');
+    </script>
+</body>
+</html>
